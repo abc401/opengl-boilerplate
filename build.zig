@@ -25,12 +25,31 @@ pub fn build(b: *std.Build) void {
     });
 
     exe.linkLibC();
-    exe.addIncludePath(.{ .path = "deps/include/" });
-    exe.addLibraryPath(.{ .path = "deps/lib/" });
-    exe.linkSystemLibrary("SDL2.dll");
+
+    const include_paths = [_][]const u8{
+        "deps/glad/include/",
+        "deps/SDL/include/",
+    };
+    for (include_paths) |include_path| {
+        exe.addIncludePath(.{ .path = include_path });
+    }
+
+    const lib_paths = [_][]const u8{
+        "deps/SDL/lib/",
+    };
+    for (lib_paths) |lib_path| {
+        exe.addLibraryPath(.{ .path = lib_path });
+    }
+
+    const bin_files = [_][]const u8{
+        "SDL2.dll",
+    };
+    for (bin_files) |bin_file| {
+        exe.linkSystemLibrary(bin_file);
+    }
 
     const c_sources = [_][]const u8{
-        "src/glad.c",
+        "deps/glad/src/glad.c",
     };
     const c_flags = [_][]const u8{"-Wall"};
     exe.addCSourceFiles(&c_sources, &c_flags);
@@ -44,7 +63,12 @@ pub fn build(b: *std.Build) void {
     // step is evaluated that depends on it. The next line below will establish
     // such a dependency.
     const run_cmd = b.addRunArtifact(exe);
-    run_cmd.addPathDir("deps/bin/");
+    const bin_paths = [_][]const u8{
+        "deps/SDL/bin/",
+    };
+    for (bin_paths) |bin_path| {
+        run_cmd.addPathDir(bin_path);
+    }
 
     // By making the run step depend on the install step, it will be run from the
     // installation directory rather than directly from within the cache directory.
